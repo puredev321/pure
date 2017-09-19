@@ -1092,7 +1092,7 @@ boost::filesystem::path GetDefaultDataDir()
     return pathRet / "Pure";
 #else
     // Unix
-    return pathRet / ".dprice";
+    return pathRet / ".pure";
 #endif
 #endif
 }
