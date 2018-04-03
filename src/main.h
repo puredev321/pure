@@ -26,7 +26,8 @@ static const int64_t DARKSEND_POOL_MAX = (2499.99*COIN);
 
 static const int64_t STATIC_POS_REWARD = 10 * COIN;
 static const int64_t TARGET_SPACING = 180;
-
+static const int64_t TARGET_SPACING_NEW = 60;
+static const int64_t FORK_TIME = 1522998000;  //April 6th, 2018
 
 #define INSTANTX_SIGNATURES_REQUIRED           10
 #define INSTANTX_SIGNATURES_TOTAL              15
@@ -74,7 +75,7 @@ inline int64_t FutureDrift(int64_t nTime) { return nTime + DRIFT; }
 /** "reject" message codes **/
 static const unsigned char REJECT_INVALID = 0x10;
 
-inline int64_t GetMNCollateral(int nHeight) { return 2500; }
+inline int64_t GetMNCollateral(int nHeight) { return nHeight>=86650 ? 5000 : 2500; }
 
 extern CScript COINBASE_FLAGS;
 extern CCriticalSection cs_main;

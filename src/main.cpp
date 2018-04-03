@@ -1369,7 +1369,15 @@ int64_t GetProofOfWorkReward(int nHeight, int64_t nFees)
 int64_t GetProofOfStakeReward(const CBlockIndex* pindexPrev, int64_t nCoinAge, int64_t nFees)
 {
     int64_t nSubsidy = 10 * COIN;
-    if ((pindexPrev->nHeight > 30000) && (pindexPrev->nHeight < 120000)) nSubsidy = 20 * COIN;
+    
+    if (pindexPrev->nHeight > 30000 && pindexPrev->nHeight <= 86650) {
+        nSubsidy = 20 * COIN;
+    } else if (pindexPrev->nHeight > 86650 && pindexPrev->nHeight <= 344000) {
+        nSubsidy = 120 * COIN;
+    } else if (pindexPrev->nHeight > 344000) {
+        nSubsidy = 20 * COIN;
+    }
+    
     return nSubsidy + nFees;
 }
 
@@ -1387,6 +1395,10 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
 {
     CBigNum bnTargetLimit = fProofOfStake ? GetProofOfStakeLimit(pindexLast->nHeight) : Params().ProofOfWorkLimit();
 
+    unsigned int nTargetTemp = TARGET_SPACING;
+    if (pindexLast->nTime > FORK_TIME)
+        nTargetTemp = TARGET_SPACING_NEW;
+    
     if (pindexLast == NULL)
         return bnTargetLimit.GetCompact(); // genesis block
 
@@ -1400,16 +1412,16 @@ unsigned int GetNextTargetRequired(const CBlockIndex* pindexLast, bool fProofOfS
     int64_t nActualSpacing = pindexPrev->GetBlockTime() - pindexPrevPrev->GetBlockTime();
 
     if (nActualSpacing < 0){
-        nActualSpacing = TARGET_SPACING;
+        nActualSpacing = nTargetTemp;
     }
 
     // ppcoin: target change every block
     // ppcoin: retarget with exponential moving toward target spacing
     CBigNum bnNew;
     bnNew.SetCompact(pindexPrev->nBits);
-    int64_t nInterval = nTargetTimespan / TARGET_SPACING;
-    bnNew *= ((nInterval - 1) * TARGET_SPACING + nActualSpacing + nActualSpacing);
-    bnNew /= ((nInterval + 1) * TARGET_SPACING);
+    int64_t nInterval = nTargetTimespan / nTargetTemp;
+    bnNew *= ((nInterval - 1) * nTargetTemp + nActualSpacing + nActualSpacing);
+    bnNew /= ((nInterval + 1) * nTargetTemp);
 
     if (bnNew <= 0 || bnNew > bnTargetLimit)
         bnNew = bnTargetLimit;
@@ -4476,5 +4488,8 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
     int64_t ret = blockValue * 13/20; //65%
 
+    if (nHeight > 86650 && nHeight <= 344000)
+        int64_t ret = blockValue * 5/6; //80%
+   
     return ret;
 }
